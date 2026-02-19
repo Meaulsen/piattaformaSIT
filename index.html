@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piattaforma SIT – Compilazione e Generazione Documenti</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #1a56db;
+            --primary-light: #e1effe;
+            --primary-dark: #1e40af;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --auto-fill-bg: #eff6ff;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: 700; }
+        .header p { font-size: .875rem; opacity: .85; margin-top: .25rem; }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* ===== CARDS / SECTIONS ===== */
+        .section-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .section-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .section-body { padding: 1.5rem; }
+
+        /* ===== FORM GRID ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .form-grid .full-width { grid-column: 1 / -1; }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label {
+            font-size: .8125rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: .375rem;
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+        }
+        .form-group label .required { color: var(--danger); font-weight: 700; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: .625rem .75rem;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: .9375rem;
+            font-family: inherit;
+            color: var(--gray-800);
+            background: white;
+            transition: border-color .2s, box-shadow .2s, background-color .2s;
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,86,219,.15);
+        }
+        .form-group input.valid,
+        .form-group select.valid,
+        .form-group textarea.valid {
+            border-color: var(--success);
+        }
+        .form-group input.invalid,
+        .form-group select.invalid,
+        .form-group textarea.invalid {
+            border-color: var(--danger);
+            background: var(--danger-light);
+        }
+        .form-group .error-msg {
+            font-size: .75rem;
+            color: var(--danger);
+            margin-top: .25rem;
+            display: none;
+        }
+        .form-group .error-msg.visible { display: block; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group .char-count {
+            font-size: .7rem;
+            color: var(--gray-400);
+            text-align: right;
+            margin-top: .125rem;
+        }
+        .form-group .auto-filled {
+            background: var(--auto-fill-bg) !important;
+            border-color: var(--primary) !important;
+            border-style: dashed !important;
+        }
+        .auto-fill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            font-size: .6875rem;
+            color: var(--primary);
+            margin-top: .25rem;
+        }
+        .auto-fill-badge svg { width: 12px; height: 12px; }
+
+        /* ===== SELECTOR AREA ===== */
+        .selector-area {
+            padding: 1.25rem 1.5rem;
+        }
+        .selector-area label {
+            font-size: .875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: .5rem;
+            display: block;
+        }
+        .selector-area select {
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: white;
+            color: var(--gray-800);
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .selector-area select:disabled {
+            background: var(--gray-100);
+            color: var(--gray-400);
+            cursor: not-allowed;
+            border-color: var(--gray-200);
+        }
+        .selector-area select:not(:disabled):hover {
+            border-color: var(--primary);
+        }
+        .selector-hint {
+            font-size: .8125rem;
+            color: var(--gray-500);
+            margin-top: .5rem;
+            display: flex;
+            align-items: center;
+            gap: .375rem;
+        }
+        .selector-hint.info { color: var(--primary); }
+        .selector-hint.warning { color: var(--warning); }
+
+        /* ===== SPECIFIC SECTIONS ===== */
+        .specific-section {
+            display: none;
+            animation: slideDown .35s ease-out;
+        }
+        .specific-section.active { display: block; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== DYNAMIC ROWS ===== */
+        .dynamic-rows { display: flex; flex-direction: column; gap: .5rem; }
+        .dynamic-row {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+        }
+        .dynamic-row input {
+            flex: 1;
+            padding: .5rem .625rem;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: .875rem;
+            font-family: inherit;
+        }
+        .dynamic-row input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26,86,219,.15);
+        }
+        .btn-remove-row {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 700;
+            transition: background .2s;
+        }
+        .btn-remove-row:hover { background: #fca5a5; }
+        .btn-add-row {
+            align-self: flex-start;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1.5px dashed var(--primary);
+            border-radius: 6px;
+            padding: .375rem .75rem;
+            font-size: .8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+            margin-top: .25rem;
+        }
+        .btn-add-row:hover { background: #bfdbfe; }
+
+        /* ===== CHECKLIST ===== */
+        .checklist { display: flex; flex-direction: column; gap: .375rem; }
+        .checklist label {
+            font-weight: 400;
+            font-size: .875rem;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+        }
+        .checklist input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ===== RADIO BUTTONS ===== */
+        .radio-group { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .radio-group label {
+            font-weight: 400;
+            font-size: .9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: .375rem;
+        }
+        .radio-group input[type="radio"] {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .375rem;
+            font-size: .8125rem;
+            font-weight: 600;
+            padding: .25rem .75rem;
+            border-radius: 999px;
+        }
+        .status-badge.incomplete {
+            background: var(--gray-100);
+            color: var(--gray-500);
+        }
+        .status-badge.in-progress {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        .status-badge.complete {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .progress-text {
+            font-size: .75rem;
+            color: var(--gray-500);
+        }
+
+        /* ===== COMPLETION MESSAGE ===== */
+        .completion-msg {
+            display: none;
+            padding: .75rem 1rem;
+            background: var(--success-light);
+            border: 1px solid #6ee7b7;
+            border-radius: 6px;
+            color: var(--success);
+            font-size: .875rem;
+            font-weight: 500;
+            margin-top: 1rem;
+            align-items: center;
+            gap: .5rem;
+        }
+        .completion-msg.visible { display: flex; }
+
+        /* ===== DOWNLOAD BUTTON ===== */
+        .download-area {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: .9375rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-download:disabled {
+            background: var(--gray-200);
+            color: var(--gray-400);
+            cursor: not-allowed;
+        }
+        .btn-download:not(:disabled) {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 2px 4px rgba(5,150,105,.3);
+        }
+        .btn-download:not(:disabled):hover {
+            background: #047857;
+            box-shadow: 0 4px 8px rgba(5,150,105,.4);
+            transform: translateY(-1px);
+        }
+        .btn-download svg { width: 18px; height: 18px; }
+
+        /* ===== SUMMARY PANEL ===== */
+        .summary-panel {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            border-top: 2px solid var(--gray-200);
+            padding: 1rem 0;
+            box-shadow: 0 -4px 12px rgba(0,0,0,.08);
+            z-index: 50;
+        }
+        .summary-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .75rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            transition: all .2s;
+        }
+        .summary-item.available { border-color: var(--gray-300); background: white; }
+        .summary-item.complete { border-color: var(--success); background: var(--success-light); }
+        .summary-item.unavailable { opacity: .5; }
+        .summary-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .summary-icon.gray { background: var(--gray-200); color: var(--gray-400); }
+        .summary-icon.green { background: var(--success); color: white; }
+        .summary-icon.orange { background: var(--warning-light); color: var(--warning); }
+        .summary-details { flex: 1; min-width: 0; }
+        .summary-details .name {
+            font-size: .8125rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .summary-details .count {
+            font-size: .75rem;
+            color: var(--gray-500);
+        }
+        .summary-download {
+            padding: .375rem .625rem;
+            border: none;
+            border-radius: 6px;
+            font-size: .75rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+        .summary-download:disabled {
+            background: var(--gray-200);
+            color: var(--gray-400);
+            cursor: not-allowed;
+        }
+        .summary-download:not(:disabled) {
+            background: var(--success);
+            color: white;
+        }
+
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 1rem;
+            max-width: 380px;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            font-size: .875rem;
+            z-index: 200;
+            animation: notifIn .3s ease-out;
+            display: none;
+        }
+        .notification.visible { display: block; }
+        .notification.info { background: var(--primary-light); color: var(--primary-dark); border: 1px solid #93c5fd; }
+        .notification.warning { background: var(--warning-light); color: #92400e; border: 1px solid #fcd34d; }
+        @keyframes notifIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255,255,255,.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+        }
+        .spinner.active { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== DURATION UNIT ===== */
+        .input-with-unit {
+            display: flex;
+            gap: .5rem;
+        }
+        .input-with-unit input { flex: 1; }
+        .input-with-unit select { width: 120px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .summary-inner { grid-template-columns: 1fr; }
+            .container { padding: 1rem .5rem; }
+            .header { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+    <h1>Piattaforma SIT</h1>
+    <p>Compilazione e Generazione Documenti Amministrativi</p>
+</header>
+
+<!-- ===== NOTIFICATION ===== -->
+<div id="notification" class="notification"></div>
+
+<!-- ===== MAIN CONTAINER ===== -->
+<div class="container">
+
+    <!-- ================================================================ -->
+    <!-- AREA 1: SEZIONE TRASVERSALE                                      -->
+    <!-- ================================================================ -->
+    <div class="section-card" id="sezione-trasversale">
+        <div class="section-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                Sezione Trasversale – Informazioni Comuni
+            </h2>
+            <span class="status-badge incomplete" id="trasversale-status">
+                <span class="status-icon">&#9675;</span>
+                <span class="status-text">Da compilare</span>
+            </span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+                <!-- Oggetto / Titolo -->
+                <div class="form-group full-width">
+                    <label>Oggetto / Titolo <span class="required">*</span></label>
+                    <input type="text" id="t-oggetto" placeholder="Denominazione sintetica dell'appalto, progetto o fornitura" data-required="true">
+                    <span class="error-msg" id="err-t-oggetto">Campo obbligatorio</span>
+                </div>
+
+                <!-- CIG -->
+                <div class="form-group">
+                    <label>CIG <span class="required">*</span></label>
+                    <input type="text" id="t-cig" placeholder="10 caratteri alfanumerici" maxlength="10" data-required="true" data-pattern="^[A-Za-z0-9]{10}$">
+                    <span class="error-msg" id="err-t-cig">Formato CIG non valido (10 caratteri alfanumerici)</span>
+                </div>
+
+                <!-- CUP -->
+                <div class="form-group">
+                    <label>CUP</label>
+                    <input type="text" id="t-cup" placeholder="15 caratteri (opzionale)" maxlength="15" data-pattern="^[A-Za-z0-9]{15}$">
+                    <span class="error-msg" id="err-t-cup">Formato CUP non valido (15 caratteri alfanumerici)</span>
+                </div>
+
+                <!-- RUP -->
+                <div class="form-group">
+                    <label>Responsabile Unico del Procedimento (RUP) <span class="required">*</span></label>
+                    <input type="text" id="t-rup" placeholder="Nome e cognome" data-required="true">
+                    <span class="error-msg" id="err-t-rup">Campo obbligatorio</span>
+                </div>
+
+                <!-- Struttura -->
+                <div class="form-group">
+                    <label>Struttura / Unit&agrave; Organizzativa</label>
+                    <select id="t-struttura">
+                        <option value="">— Seleziona —</option>
+                        <option value="Direzione Generale">Direzione Generale</option>
+                        <option value="Direzione Amministrativa">Direzione Amministrativa</option>
+                        <option value="Direzione Tecnica">Direzione Tecnica</option>
+                        <option value="Ufficio Acquisti">Ufficio Acquisti</option>
+                        <option value="Ufficio Progetti Speciali">Ufficio Progetti Speciali</option>
+                    </select>
+                </div>
+
+                <!-- Importo -->
+                <div class="form-group">
+                    <label>Importo Stimato (&euro;) <span class="required">*</span></label>
+                    <input type="number" id="t-importo" placeholder="0,00" step="0.01" min="0" data-required="true">
+                    <span class="error-msg" id="err-t-importo">Inserisci un importo valido</span>
+                </div>
+
+                <!-- Fonte di Finanziamento -->
+                <div class="form-group">
+                    <label>Fonte di Finanziamento</label>
+                    <select id="t-fonte">
+                        <option value="">— Seleziona —</option>
+                        <option value="Fondi Ordinari">Fondi Ordinari</option>
+                        <option value="PNRR">PNRR</option>
+                        <option value="Fondi Europei">Fondi Europei</option>
+                        <option value="Fondi Regionali">Fondi Regionali</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+
+                <!-- Data Prevista -->
+                <div class="form-group">
+                    <label>Data Prevista</label>
+                    <input type="date" id="t-data">
+                </div>
+
+                <!-- Descrizione Sintetica -->
+                <div class="form-group full-width">
+                    <label>Descrizione Sintetica</label>
+                    <textarea id="t-descrizione" placeholder="Breve descrizione dell'esigenza o dell'intervento" maxlength="500"></textarea>
+                    <span class="char-count"><span id="t-descrizione-count">0</span>/500</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- AREA 2: SELETTORE DOCUMENTO                                      -->
+    <!-- ================================================================ -->
+    <div class="section-card" id="selettore-card">
+        <div class="section-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Seleziona Documento
+            </h2>
+        </div>
+        <div class="selector-area">
+            <label for="doc-selector">Tipo di documento da compilare</label>
+            <select id="doc-selector" disabled>
+                <option value="">— Seleziona un documento —</option>
+                <option value="decisione">Decisione di Contrarre</option>
+                <option value="scheda">Scheda Progetto</option>
+                <option value="richiesta">Richiesta d'Offerta</option>
+            </select>
+            <div class="selector-hint" id="selector-hint">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <span>Compila tutti i campi obbligatori della sezione trasversale per sbloccare la selezione del documento.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- AREA 3: SEZIONI SPECIFICHE                                       -->
+    <!-- ================================================================ -->
+
+    <!-- ---- DECISIONE DI CONTRARRE ---- -->
+    <div class="specific-section" id="section-decisione">
+        <div class="section-card">
+            <div class="section-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Decisione di Contrarre – Campi Specifici
+                </h2>
+                <span class="status-badge incomplete" id="decisione-status">
+                    <span class="status-icon">&#9675;</span>
+                    <span class="status-text">Da compilare</span>
+                </span>
+            </div>
+            <div class="section-body">
+                <div class="form-grid">
+                    <!-- Numero Determina -->
+                    <div class="form-group">
+                        <label>Numero Determina <span class="required">*</span></label>
+                        <input type="text" id="d-numero" placeholder="Numero progressivo dell'atto" data-required="true" data-doc="decisione">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Data Determina -->
+                    <div class="form-group">
+                        <label>Data Determina <span class="required">*</span></label>
+                        <input type="date" id="d-data" data-required="true" data-doc="decisione">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Procedura di Affidamento -->
+                    <div class="form-group">
+                        <label>Procedura di Affidamento <span class="required">*</span></label>
+                        <select id="d-procedura" data-required="true" data-doc="decisione">
+                            <option value="">— Seleziona —</option>
+                            <option value="Affidamento Diretto">Affidamento Diretto</option>
+                            <option value="Procedura Negoziata">Procedura Negoziata</option>
+                            <option value="Procedura Aperta">Procedura Aperta</option>
+                            <option value="Procedura Ristretta">Procedura Ristretta</option>
+                        </select>
+                        <span class="error-msg">Seleziona una procedura</span>
+                    </div>
+
+                    <!-- Criterio di Aggiudicazione -->
+                    <div class="form-group">
+                        <label>Criterio di Aggiudicazione <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="d-criterio" value="Prezzo più basso" data-doc="decisione"> Prezzo pi&ugrave; basso</label>
+                            <label><input type="radio" name="d-criterio" value="OEPV" data-doc="decisione"> Offerta economicamente pi&ugrave; vantaggiosa</label>
+                        </div>
+                    </div>
+
+                    <!-- Durata Contratto -->
+                    <div class="form-group">
+                        <label>Durata Contratto</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="d-durata" placeholder="Durata" min="0" data-doc="decisione">
+                            <select id="d-durata-unita" data-doc="decisione">
+                                <option value="mesi">Mesi</option>
+                                <option value="giorni">Giorni</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Normativa di Riferimento -->
+                    <div class="form-group">
+                        <label>Normativa di Riferimento</label>
+                        <input type="text" id="d-normativa" placeholder="Es. D.Lgs. 36/2023, art. XX" data-doc="decisione" data-shared="normativa">
+                        <span class="error-msg"></span>
+                    </div>
+
+                    <!-- Motivazione -->
+                    <div class="form-group full-width">
+                        <label>Motivazione della Decisione <span class="required">*</span></label>
+                        <textarea id="d-motivazione" placeholder="Ragioni tecnico-economiche alla base della decisione" maxlength="2000" data-required="true" data-doc="decisione"></textarea>
+                        <span class="char-count"><span id="d-motivazione-count">0</span>/2000</span>
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Responsabile Firma -->
+                    <div class="form-group full-width">
+                        <label>Responsabile del Procedimento Firma <span class="required">*</span></label>
+                        <input type="text" id="d-firma" placeholder="Nome e qualifica del firmatario" data-required="true" data-doc="decisione">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+                </div>
+
+                <div class="completion-msg" id="decisione-completion">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Sezione completata con successo – il documento &egrave; pronto per il download.
+                </div>
+            </div>
+            <div class="download-area">
+                <span class="progress-text" id="decisione-progress">0 / 6 campi obbligatori compilati</span>
+                <button class="btn-download" id="btn-download-decisione" disabled onclick="downloadDoc('decisione')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Scarica .docx</span>
+                    <span class="spinner" id="spinner-decisione"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---- SCHEDA PROGETTO ---- -->
+    <div class="specific-section" id="section-scheda">
+        <div class="section-card">
+            <div class="section-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Scheda Progetto – Campi Specifici
+                </h2>
+                <span class="status-badge incomplete" id="scheda-status">
+                    <span class="status-icon">&#9675;</span>
+                    <span class="status-text">Da compilare</span>
+                </span>
+            </div>
+            <div class="section-body">
+                <div class="form-grid">
+                    <!-- Codice Progetto -->
+                    <div class="form-group">
+                        <label>Codice Progetto Interno</label>
+                        <input type="text" id="s-codice" placeholder="Codice identificativo interno" data-doc="scheda">
+                    </div>
+
+                    <!-- Obiettivo Strategico -->
+                    <div class="form-group">
+                        <label>Obiettivo Strategico</label>
+                        <select id="s-obiettivo" data-doc="scheda">
+                            <option value="">— Seleziona —</option>
+                            <option value="Digitalizzazione">Digitalizzazione</option>
+                            <option value="Sostenibilità Ambientale">Sostenibilit&agrave; Ambientale</option>
+                            <option value="Efficienza Operativa">Efficienza Operativa</option>
+                            <option value="Innovazione">Innovazione</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <!-- Data Inizio Prevista -->
+                    <div class="form-group">
+                        <label>Data Inizio Prevista <span class="required">*</span></label>
+                        <input type="date" id="s-data-inizio" data-required="true" data-doc="scheda">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Data Fine Prevista -->
+                    <div class="form-group">
+                        <label>Data Fine Prevista <span class="required">*</span></label>
+                        <input type="date" id="s-data-fine" data-required="true" data-doc="scheda">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Milestone -->
+                    <div class="form-group full-width">
+                        <label>Milestone Principali</label>
+                        <div class="dynamic-rows" id="milestone-rows">
+                            <div class="dynamic-row">
+                                <input type="text" placeholder="Nome milestone" data-doc="scheda">
+                                <input type="date" data-doc="scheda">
+                                <button class="btn-remove-row" onclick="removeRow(this)" title="Rimuovi">&times;</button>
+                            </div>
+                        </div>
+                        <button class="btn-add-row" onclick="addMilestoneRow()">+ Aggiungi milestone</button>
+                    </div>
+
+                    <!-- KPI -->
+                    <div class="form-group full-width">
+                        <label>Indicatori di Risultato (KPI)</label>
+                        <div class="dynamic-rows" id="kpi-rows">
+                            <div class="dynamic-row">
+                                <input type="text" placeholder="Indicatore" data-doc="scheda">
+                                <input type="text" placeholder="Valore target" data-doc="scheda">
+                                <button class="btn-remove-row" onclick="removeRow(this)" title="Rimuovi">&times;</button>
+                            </div>
+                        </div>
+                        <button class="btn-add-row" onclick="addKpiRow()">+ Aggiungi indicatore</button>
+                    </div>
+
+                    <!-- Risorse Umane -->
+                    <div class="form-group full-width">
+                        <label>Risorse Umane Coinvolte</label>
+                        <textarea id="s-risorse" placeholder="Numero e profilo delle risorse assegnate" data-doc="scheda"></textarea>
+                    </div>
+
+                    <!-- Rischi e Criticità -->
+                    <div class="form-group full-width">
+                        <label>Rischi e Criticit&agrave;</label>
+                        <textarea id="s-rischi" placeholder="Principali rischi e strategie di mitigazione" maxlength="1500" data-doc="scheda"></textarea>
+                        <span class="char-count"><span id="s-rischi-count">0</span>/1500</span>
+                    </div>
+
+                    <!-- Note -->
+                    <div class="form-group full-width">
+                        <label>Note Aggiuntive</label>
+                        <textarea id="s-note" placeholder="Eventuali annotazioni" maxlength="1000" data-doc="scheda"></textarea>
+                        <span class="char-count"><span id="s-note-count">0</span>/1000</span>
+                    </div>
+                </div>
+
+                <div class="completion-msg" id="scheda-completion">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Sezione completata con successo – il documento &egrave; pronto per il download.
+                </div>
+            </div>
+            <div class="download-area">
+                <span class="progress-text" id="scheda-progress">0 / 2 campi obbligatori compilati</span>
+                <button class="btn-download" id="btn-download-scheda" disabled onclick="downloadDoc('scheda')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Scarica .docx</span>
+                    <span class="spinner" id="spinner-scheda"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---- RICHIESTA D'OFFERTA ---- -->
+    <div class="specific-section" id="section-richiesta">
+        <div class="section-card">
+            <div class="section-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Richiesta d'Offerta – Campi Specifici
+                </h2>
+                <span class="status-badge incomplete" id="richiesta-status">
+                    <span class="status-icon">&#9675;</span>
+                    <span class="status-text">Da compilare</span>
+                </span>
+            </div>
+            <div class="section-body">
+                <div class="form-grid">
+                    <!-- Destinatario -->
+                    <div class="form-group">
+                        <label>Destinatario / Fornitore <span class="required">*</span></label>
+                        <input type="text" id="r-destinatario" placeholder="Ragione sociale del fornitore" data-required="true" data-doc="richiesta">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- P.IVA -->
+                    <div class="form-group">
+                        <label>P.IVA / CF Fornitore <span class="required">*</span></label>
+                        <input type="text" id="r-piva" placeholder="Partita IVA o Codice Fiscale" data-required="true" data-doc="richiesta" data-pattern="^[0-9]{11}$|^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$">
+                        <span class="error-msg">Formato P.IVA (11 cifre) o CF (16 caratteri) non valido</span>
+                    </div>
+
+                    <!-- Termine Presentazione -->
+                    <div class="form-group">
+                        <label>Termine Presentazione Offerta <span class="required">*</span></label>
+                        <input type="datetime-local" id="r-termine" data-required="true" data-doc="richiesta">
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Normativa (shared) -->
+                    <div class="form-group">
+                        <label>Normativa di Riferimento</label>
+                        <input type="text" id="r-normativa" placeholder="Es. D.Lgs. 36/2023, art. XX" data-doc="richiesta" data-shared="normativa">
+                    </div>
+
+                    <!-- Requisiti Tecnici -->
+                    <div class="form-group full-width">
+                        <label>Requisiti Tecnici <span class="required">*</span></label>
+                        <textarea id="r-requisiti" placeholder="Specifiche tecniche richieste al fornitore" maxlength="3000" data-required="true" data-doc="richiesta"></textarea>
+                        <span class="char-count"><span id="r-requisiti-count">0</span>/3000</span>
+                        <span class="error-msg">Campo obbligatorio</span>
+                    </div>
+
+                    <!-- Criteri di Valutazione -->
+                    <div class="form-group full-width">
+                        <label>Criteri di Valutazione</label>
+                        <div class="dynamic-rows" id="criteri-rows">
+                            <div class="dynamic-row">
+                                <input type="text" placeholder="Criterio" data-doc="richiesta">
+                                <input type="number" placeholder="Peso %" min="0" max="100" style="width:100px" data-doc="richiesta">
+                                <button class="btn-remove-row" onclick="removeRow(this)" title="Rimuovi">&times;</button>
+                            </div>
+                        </div>
+                        <button class="btn-add-row" onclick="addCriterioRow()">+ Aggiungi criterio</button>
+                    </div>
+
+                    <!-- Modalità di Consegna -->
+                    <div class="form-group">
+                        <label>Modalit&agrave; di Consegna</label>
+                        <select id="r-consegna" data-doc="richiesta">
+                            <option value="">— Seleziona —</option>
+                            <option value="PEC">PEC</option>
+                            <option value="Portale">Portale</option>
+                            <option value="Cartaceo">Cartaceo</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <!-- Condizioni di Pagamento -->
+                    <div class="form-group">
+                        <label>Condizioni di Pagamento</label>
+                        <select id="r-pagamento" data-doc="richiesta">
+                            <option value="">— Seleziona —</option>
+                            <option value="30gg DFFM">30gg DFFM</option>
+                            <option value="60gg DFFM">60gg DFFM</option>
+                            <option value="90gg DFFM">90gg DFFM</option>
+                            <option value="Anticipo + Saldo">Anticipo + Saldo</option>
+                        </select>
+                    </div>
+
+                    <!-- Penali -->
+                    <div class="form-group full-width">
+                        <label>Penali Contrattuali</label>
+                        <textarea id="r-penali" placeholder="Penali previste per ritardi o inadempimenti" maxlength="1000" data-doc="richiesta"></textarea>
+                        <span class="char-count"><span id="r-penali-count">0</span>/1000</span>
+                    </div>
+
+                    <!-- Allegati Richiesti -->
+                    <div class="form-group full-width">
+                        <label>Allegati Richiesti</label>
+                        <div class="checklist">
+                            <label><input type="checkbox" data-doc="richiesta" value="DURC"> DURC</label>
+                            <label><input type="checkbox" data-doc="richiesta" value="Casellario Giudiziale"> Casellario Giudiziale</label>
+                            <label><input type="checkbox" data-doc="richiesta" value="Visura Camerale"> Visura Camerale</label>
+                            <label><input type="checkbox" data-doc="richiesta" value="Certificazione ISO"> Certificazione ISO</label>
+                            <label><input type="checkbox" data-doc="richiesta" value="Dichiarazione Antimafia"> Dichiarazione Antimafia</label>
+                            <label><input type="checkbox" data-doc="richiesta" value="Bilancio Ultimo Esercizio"> Bilancio Ultimo Esercizio</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="completion-msg" id="richiesta-completion">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Sezione completata con successo – il documento &egrave; pronto per il download.
+                </div>
+            </div>
+            <div class="download-area">
+                <span class="progress-text" id="richiesta-progress">0 / 4 campi obbligatori compilati</span>
+                <button class="btn-download" id="btn-download-richiesta" disabled onclick="downloadDoc('richiesta')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Scarica .docx</span>
+                    <span class="spinner" id="spinner-richiesta"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- .container -->
+
+<!-- ===== SUMMARY PANEL ===== -->
+<div class="summary-panel">
+    <div class="summary-inner">
+        <!-- Decisione -->
+        <div class="summary-item" id="summary-decisione">
+            <div class="summary-icon gray" id="summary-icon-decisione">&#9675;</div>
+            <div class="summary-details">
+                <div class="name">Decisione di Contrarre</div>
+                <div class="count" id="summary-count-decisione">Non disponibile</div>
+            </div>
+            <button class="summary-download" id="summary-btn-decisione" disabled onclick="downloadDoc('decisione')">Scarica</button>
+        </div>
+        <!-- Scheda -->
+        <div class="summary-item" id="summary-scheda">
+            <div class="summary-icon gray" id="summary-icon-scheda">&#9675;</div>
+            <div class="summary-details">
+                <div class="name">Scheda Progetto</div>
+                <div class="count" id="summary-count-scheda">Non disponibile</div>
+            </div>
+            <button class="summary-download" id="summary-btn-scheda" disabled onclick="downloadDoc('scheda')">Scarica</button>
+        </div>
+        <!-- Richiesta -->
+        <div class="summary-item" id="summary-richiesta">
+            <div class="summary-icon gray" id="summary-icon-richiesta">&#9675;</div>
+            <div class="summary-details">
+                <div class="name">Richiesta d'Offerta</div>
+                <div class="count" id="summary-count-richiesta">Non disponibile</div>
+            </div>
+            <button class="summary-download" id="summary-btn-richiesta" disabled onclick="downloadDoc('richiesta')">Scarica</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===================================================================
+// STATE & CONFIG
+// ===================================================================
+const state = {
+    trasversale: {},
+    decisione: {},
+    scheda: {},
+    richiesta: {},
+    selectorEnabled: false,
+    currentDoc: '',
+    availableDocs: [],
+    completedDocs: { decisione: false, scheda: false, richiesta: false }
+};
+
+// Required fields per section
+const requiredFields = {
+    trasversale: ['t-oggetto', 't-cig', 't-rup', 't-importo'],
+    decisione: ['d-numero', 'd-data', 'd-procedura', 'd-motivazione', 'd-firma'],
+    scheda: ['s-data-inizio', 's-data-fine'],
+    richiesta: ['r-destinatario', 'r-piva', 'r-termine', 'r-requisiti']
+};
+
+// Radio button required groups
+const requiredRadios = {
+    decisione: ['d-criterio']
+};
+
+// Shared field mappings (key -> list of element IDs sharing the same value)
+const sharedFields = {
+    normativa: ['d-normativa', 'r-normativa']
+};
+
+// ===================================================================
+// INITIALIZATION
+// ===================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    setupValidation();
+    setupCharCounters();
+    setupDocSelector();
+    setupSharedFields();
+    updateAll();
+});
+
+// ===================================================================
+// VALIDATION
+// ===================================================================
+function setupValidation() {
+    // All inputs/selects/textareas
+    const fields = document.querySelectorAll('input, select, textarea');
+    fields.forEach(f => {
+        f.addEventListener('blur', () => validateField(f));
+        f.addEventListener('input', () => {
+            validateField(f);
+            updateAll();
+        });
+        f.addEventListener('change', () => {
+            validateField(f);
+            updateAll();
+        });
+    });
+    // Radio buttons
+    document.querySelectorAll('input[type="radio"]').forEach(r => {
+        r.addEventListener('change', () => updateAll());
+    });
+}
+
+function validateField(el) {
+    if (el.type === 'checkbox' || el.type === 'radio') return;
+
+    const val = el.value.trim();
+    const isRequired = el.dataset.required === 'true';
+    const pattern = el.dataset.pattern;
+    const errorEl = el.parentElement.querySelector('.error-msg');
+
+    // Remove previous state
+    el.classList.remove('valid', 'invalid');
+
+    if (val === '') {
+        if (isRequired) {
+            el.classList.add('invalid');
+            if (errorEl) errorEl.classList.add('visible');
+        } else {
+            if (errorEl) errorEl.classList.remove('visible');
+        }
+        return;
+    }
+
+    if (pattern) {
+        const regex = new RegExp(pattern);
+        if (!regex.test(val)) {
+            el.classList.add('invalid');
+            if (errorEl) errorEl.classList.add('visible');
+            return;
+        }
+    }
+
+    el.classList.add('valid');
+    if (errorEl) errorEl.classList.remove('visible');
+}
+
+function isFieldValid(id) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    const val = el.value.trim();
+    if (val === '') return false;
+    const pattern = el.dataset.pattern;
+    if (pattern && !new RegExp(pattern).test(val)) return false;
+    return true;
+}
+
+function isRadioSelected(name) {
+    return document.querySelector(`input[name="${name}"]:checked`) !== null;
+}
+
+// ===================================================================
+// CHARACTER COUNTERS
+// ===================================================================
+function setupCharCounters() {
+    const textareas = [
+        { id: 't-descrizione', countId: 't-descrizione-count' },
+        { id: 'd-motivazione', countId: 'd-motivazione-count' },
+        { id: 's-rischi', countId: 's-rischi-count' },
+        { id: 's-note', countId: 's-note-count' },
+        { id: 'r-requisiti', countId: 'r-requisiti-count' },
+        { id: 'r-penali', countId: 'r-penali-count' }
+    ];
+    textareas.forEach(({ id, countId }) => {
+        const ta = document.getElementById(id);
+        const counter = document.getElementById(countId);
+        if (ta && counter) {
+            ta.addEventListener('input', () => { counter.textContent = ta.value.length; });
+        }
+    });
+}
+
+// ===================================================================
+// DOCUMENT SELECTOR
+// ===================================================================
+function setupDocSelector() {
+    const sel = document.getElementById('doc-selector');
+    sel.addEventListener('change', () => {
+        const val = sel.value;
+        // Hide all specific sections
+        document.querySelectorAll('.specific-section').forEach(s => s.classList.remove('active'));
+        state.currentDoc = val;
+        if (val) {
+            document.getElementById('section-' + val).classList.add('active');
+        }
+    });
+}
+
+// ===================================================================
+// SHARED FIELDS (Propagation)
+// ===================================================================
+function setupSharedFields() {
+    Object.entries(sharedFields).forEach(([key, ids]) => {
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                const val = el.value;
+                ids.forEach(otherId => {
+                    if (otherId !== id) {
+                        const other = document.getElementById(otherId);
+                        if (other && other.value !== val) {
+                            other.value = val;
+                            other.classList.add('auto-filled');
+                            validateField(other);
+                        }
+                    }
+                });
+                updateAll();
+            });
+        });
+    });
+}
+
+// ===================================================================
+// CONDITIONAL VISIBILITY
+// ===================================================================
+function computeAvailableDocs() {
+    const importo = parseFloat(document.getElementById('t-importo').value) || 0;
+    const fonte = document.getElementById('t-fonte').value;
+    const struttura = document.getElementById('t-struttura').value;
+    const available = [];
+
+    // Decisione di Contrarre: not shown if importo < 5000
+    if (importo >= 5000) {
+        available.push('decisione');
+    }
+
+    // Scheda Progetto: always available unless "Ufficio Acquisti" + low amount
+    if (!(struttura === 'Ufficio Acquisti' && importo < 5000)) {
+        available.push('scheda');
+    }
+
+    // Richiesta d'Offerta: always available
+    available.push('richiesta');
+
+    // If PNRR, scheda is required (make sure it's included)
+    if (fonte === 'PNRR' && !available.includes('scheda')) {
+        available.push('scheda');
+    }
+
+    return available;
+}
+
+function updateDocSelectorOptions() {
+    const sel = document.getElementById('doc-selector');
+    const available = computeAvailableDocs();
+    const prev = state.availableDocs;
+    state.availableDocs = available;
+
+    // Update option visibility
+    ['decisione', 'scheda', 'richiesta'].forEach(doc => {
+        const opt = sel.querySelector(`option[value="${doc}"]`);
+        if (opt) {
+            opt.hidden = !available.includes(doc);
+            opt.disabled = !available.includes(doc);
+        }
+    });
+
+    // Notification if a previously selected doc is no longer available
+    if (state.currentDoc && !available.includes(state.currentDoc)) {
+        const names = { decisione: 'Decisione di Contrarre', scheda: 'Scheda Progetto', richiesta: "Richiesta d'Offerta" };
+        showNotification(
+            `Il documento "${names[state.currentDoc]}" non è più disponibile con i dati attuali. I dati già compilati sono stati salvati e verranno ripristinati se il documento tornerà disponibile.`,
+            'warning'
+        );
+        sel.value = '';
+        state.currentDoc = '';
+        document.querySelectorAll('.specific-section').forEach(s => s.classList.remove('active'));
+    }
+
+    // Update hint
+    const hint = document.getElementById('selector-hint');
+    if (state.selectorEnabled) {
+        const total = 3;
+        const shown = available.length;
+        if (shown < total) {
+            hint.className = 'selector-hint info';
+            hint.querySelector('span').textContent = `In base alle informazioni inserite, sono disponibili ${shown} documenti su ${total}. Modifica i campi trasversali per visualizzare eventuali documenti aggiuntivi.`;
+        } else {
+            hint.className = 'selector-hint info';
+            hint.querySelector('span').textContent = `Tutti e ${total} i documenti sono disponibili.`;
+        }
+    }
+}
+
+// ===================================================================
+// MASTER UPDATE
+// ===================================================================
+function updateAll() {
+    updateTrasversaleStatus();
+    updateSelectorState();
+    updateDocSelectorOptions();
+    updateSpecificStatus('decisione');
+    updateSpecificStatus('scheda');
+    updateSpecificStatus('richiesta');
+    updateSummaryPanel();
+}
+
+function updateTrasversaleStatus() {
+    const fields = requiredFields.trasversale;
+    const filled = fields.filter(id => isFieldValid(id)).length;
+    const total = fields.length;
+    const badge = document.getElementById('trasversale-status');
+    const icon = badge.querySelector('.status-icon');
+    const text = badge.querySelector('.status-text');
+
+    if (filled === 0) {
+        badge.className = 'status-badge incomplete';
+        icon.innerHTML = '&#9675;';
+        text.textContent = 'Da compilare';
+    } else if (filled < total) {
+        badge.className = 'status-badge in-progress';
+        icon.innerHTML = '&#9684;';
+        text.textContent = `${filled}/${total} compilati`;
+    } else {
+        badge.className = 'status-badge complete';
+        icon.innerHTML = '&#10003;';
+        text.textContent = 'Completa';
+    }
+}
+
+function updateSelectorState() {
+    const fields = requiredFields.trasversale;
+    const allValid = fields.every(id => isFieldValid(id));
+    const sel = document.getElementById('doc-selector');
+    const hint = document.getElementById('selector-hint');
+
+    if (allValid && !state.selectorEnabled) {
+        sel.disabled = false;
+        sel.style.animation = 'none';
+        sel.offsetHeight;
+        sel.style.animation = '';
+        state.selectorEnabled = true;
+    } else if (!allValid && state.selectorEnabled) {
+        sel.disabled = true;
+        sel.value = '';
+        state.selectorEnabled = false;
+        state.currentDoc = '';
+        document.querySelectorAll('.specific-section').forEach(s => s.classList.remove('active'));
+        hint.className = 'selector-hint';
+        hint.querySelector('span').textContent = 'Compila tutti i campi obbligatori della sezione trasversale per sbloccare la selezione del documento.';
+    }
+}
+
+function updateSpecificStatus(docType) {
+    const fields = requiredFields[docType] || [];
+    const radios = requiredRadios[docType] || [];
+    const filled = fields.filter(id => isFieldValid(id)).length;
+    const radiosFilled = radios.filter(name => isRadioSelected(name)).length;
+    const totalRequired = fields.length + radios.length;
+    const totalFilled = filled + radiosFilled;
+
+    const trasversaleComplete = requiredFields.trasversale.every(id => isFieldValid(id));
+    const isComplete = trasversaleComplete && totalFilled === totalRequired;
+
+    state.completedDocs[docType] = isComplete;
+
+    // Status badge
+    const badge = document.getElementById(`${docType}-status`);
+    if (badge) {
+        const icon = badge.querySelector('.status-icon');
+        const text = badge.querySelector('.status-text');
+        if (totalFilled === 0) {
+            badge.className = 'status-badge incomplete';
+            icon.innerHTML = '&#9675;';
+            text.textContent = 'Da compilare';
+        } else if (!isComplete) {
+            badge.className = 'status-badge in-progress';
+            icon.innerHTML = '&#9684;';
+            text.textContent = `${totalFilled}/${totalRequired}`;
+        } else {
+            badge.className = 'status-badge complete';
+            icon.innerHTML = '&#10003;';
+            text.textContent = 'Completa';
+        }
+    }
+
+    // Progress text
+    const progress = document.getElementById(`${docType}-progress`);
+    if (progress) {
+        progress.textContent = `${totalFilled} / ${totalRequired} campi obbligatori compilati`;
+    }
+
+    // Completion message
+    const comp = document.getElementById(`${docType}-completion`);
+    if (comp) {
+        comp.classList.toggle('visible', isComplete);
+    }
+
+    // Download button
+    const btn = document.getElementById(`btn-download-${docType}`);
+    if (btn) {
+        btn.disabled = !isComplete;
+    }
+}
+
+function updateSummaryPanel() {
+    const available = state.availableDocs;
+    const names = { decisione: 'Decisione di Contrarre', scheda: 'Scheda Progetto', richiesta: "Richiesta d'Offerta" };
+
+    ['decisione', 'scheda', 'richiesta'].forEach(doc => {
+        const item = document.getElementById(`summary-${doc}`);
+        const icon = document.getElementById(`summary-icon-${doc}`);
+        const count = document.getElementById(`summary-count-${doc}`);
+        const btn = document.getElementById(`summary-btn-${doc}`);
+
+        const isAvailable = available.includes(doc);
+        const isComplete = state.completedDocs[doc];
+
+        const fields = requiredFields[doc] || [];
+        const radios = requiredRadios[doc] || [];
+        const totalRequired = fields.length + radios.length;
+        const filled = fields.filter(id => isFieldValid(id)).length + (radios.filter(name => isRadioSelected(name)).length);
+
+        if (!isAvailable) {
+            item.className = 'summary-item unavailable';
+            icon.className = 'summary-icon gray';
+            icon.innerHTML = '&#9675;';
+            count.textContent = 'Non disponibile';
+            btn.disabled = true;
+        } else if (isComplete) {
+            item.className = 'summary-item complete';
+            icon.className = 'summary-icon green';
+            icon.innerHTML = '&#10003;';
+            count.textContent = `${filled}/${totalRequired} – Pronto`;
+            btn.disabled = false;
+        } else if (filled > 0) {
+            item.className = 'summary-item available';
+            icon.className = 'summary-icon orange';
+            icon.innerHTML = '&#9684;';
+            count.textContent = `${filled}/${totalRequired} compilati`;
+            btn.disabled = true;
+        } else {
+            item.className = 'summary-item available';
+            icon.className = 'summary-icon gray';
+            icon.innerHTML = '&#9675;';
+            count.textContent = `0/${totalRequired} compilati`;
+            btn.disabled = true;
+        }
+    });
+}
+
+// ===================================================================
+// DYNAMIC ROWS
+// ===================================================================
+function addMilestoneRow() {
+    const container = document.getElementById('milestone-rows');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <input type="text" placeholder="Nome milestone" data-doc="scheda">
+        <input type="date" data-doc="scheda">
+        <button class="btn-remove-row" onclick="removeRow(this)" title="Rimuovi">&times;</button>
+    `;
+    container.appendChild(row);
+}
+
+function addKpiRow() {
+    const container = document.getElementById('kpi-rows');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <input type="text" placeholder="Indicatore" data-doc="scheda">
+        <input type="text" placeholder="Valore target" data-doc="scheda">
+        <button class="btn-remove-row" onclick="removeRow(this)" title="Rimuovi">&times;</button>
+    `;
+    container.appendChild(row);
+}
+
+function addCriterioRow() {
+    const container = document.getElementById('criteri-rows');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <input type="text" placeholder="Criterio" data-doc="richiesta">
+        <input type="number" placeholder="Peso %" min="0" max="100" style="width:100px" data-doc="richiesta">
+        <button class="btn-remove-row" onclick="removeRow(this)" title="Rimuovi">&times;</button>
+    `;
+    container.appendChild(row);
+}
+
+function removeRow(btn) {
+    const row = btn.parentElement;
+    const container = row.parentElement;
+    if (container.children.length > 1) {
+        row.remove();
+    }
+}
+
+// ===================================================================
+// DOWNLOAD (mockup simulation)
+// ===================================================================
+function downloadDoc(docType) {
+    const names = {
+        decisione: 'Decisione_di_Contrarre',
+        scheda: 'Scheda_Progetto',
+        richiesta: 'Richiesta_dOfferta'
+    };
+    const cig = document.getElementById('t-cig').value || 'XXXXXXXXXX';
+    const today = new Date().toISOString().slice(0, 10);
+    const filename = `${names[docType]}_CIG_${cig}_${today}.docx`;
+
+    // Show spinner
+    const spinner = document.getElementById(`spinner-${docType}`);
+    if (spinner) spinner.classList.add('active');
+
+    // Simulate generation delay
+    setTimeout(() => {
+        if (spinner) spinner.classList.remove('active');
+        showNotification(`File "${filename}" generato con successo. (Mockup – il download effettivo richiede un backend)`, 'info');
+    }, 1500);
+}
+
+// ===================================================================
+// NOTIFICATIONS
+// ===================================================================
+function showNotification(message, type = 'info') {
+    const el = document.getElementById('notification');
+    el.textContent = message;
+    el.className = `notification ${type} visible`;
+    setTimeout(() => { el.classList.remove('visible'); }, 6000);
+}
+</script>
+
+</body>
+</html>
